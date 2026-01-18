@@ -20,6 +20,7 @@ interface Attachment {
   category?: string;
   is_active: boolean;
   created_at?: string;
+  public_url?: string;
 }
 
 interface UploadItem {
@@ -185,14 +186,22 @@ export default function AttachmentManager() {
   };
 
   const handlePreview = (file: Attachment) => {
-    const fileUrl = `${API_BASE}${file.download_url}`;
+    // Use public_url if available (preferred for Office Viewer), otherwise fallback to download_url
+    const previewUrl = file.public_url || `${API_BASE}${file.download_url}`;
 
     // For Word/Excel/PowerPoint, use Microsoft Office Online Viewer
     if (file.file_name.match(/\.(doc|docx|xls|xlsx|ppt|pptx)$/i)) {
-      window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`, '_blank');
+      // Office Viewer requires a publicly accessible URL
+      if (file.public_url) {
+        window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(file.public_url)}`, '_blank');
+      } else {
+        // Warning: Localhost URLs won't work with Office Viewer
+        console.warn('Cannot preview Office file without public_url (Localhost not supported by MS Office Viewer)');
+        window.open(previewUrl, '_blank');
+      }
     } else {
       // For PDF, Images, or others, try opening directly in browser
-      window.open(fileUrl, '_blank');
+      window.open(previewUrl, '_blank');
     }
   };
 
