@@ -165,6 +165,8 @@ export default function AttachmentManager() {
     await fetchAttachments();
   };
 
+  const allSuccess = uploadQueue.length > 0 && uploadQueue.every(i => i.status === 'success');
+
   const handleDelete = async (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa file này?')) return;
     try {
@@ -310,8 +312,8 @@ export default function AttachmentManager() {
             <div className="p-5 flex-1">
               <div className="flex justify-between items-start mb-4">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${file.file_name.endsWith('.pdf') ? 'bg-red-50 text-red-600' :
-                    file.file_name.match(/\.(xls|xlsx)$/) ? 'bg-green-50 text-green-600' :
-                      'bg-blue-50 text-blue-600'
+                  file.file_name.match(/\.(xls|xlsx)$/) ? 'bg-green-50 text-green-600' :
+                    'bg-blue-50 text-blue-600'
                   }`}>
                   <FileText className="w-6 h-6" />
                 </div>
@@ -498,23 +500,38 @@ export default function AttachmentManager() {
               )}
             </div>
 
-            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowUploadModal(false);
-                  setUploadQueue([]);
-                }}
-                className="px-5 py-2.5 text-gray-700 font-medium hover:bg-gray-200 rounded-xl transition-colors"
-              >
-                Đóng
-              </button>
-              <button
-                onClick={handleUploadAll}
-                disabled={uploadQueue.length === 0 || uploadQueue.every(i => i.status === 'success')}
-                className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 hover:shadow-xl transition-all disabled:opacity-50 disabled:shadow-none"
-              >
-                {uploadQueue.some(i => i.status === 'uploading') ? 'Đang xử lý...' : 'Upload Tất cả'}
-              </button>
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex flex-col gap-3">
+              {allSuccess && (
+                <div className="flex items-center gap-2 text-green-600 bg-green-50 p-2 rounded-lg text-sm mb-1 animate-in fade-in slide-in-from-bottom-2">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-medium">Tất cả file đã được upload thành công!</span>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowUploadModal(false);
+                    setUploadQueue([]);
+                  }}
+                  className={`px-5 py-2.5 font-medium rounded-xl transition-colors ${allSuccess
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200 hover:shadow-xl'
+                    : 'text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  {allSuccess ? 'Hoàn tất & Đóng' : 'Đóng'}
+                </button>
+
+                {!allSuccess && (
+                  <button
+                    onClick={handleUploadAll}
+                    disabled={uploadQueue.length === 0 || uploadQueue.every(i => i.status === 'success')}
+                    className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 hover:shadow-xl transition-all disabled:opacity-50 disabled:shadow-none"
+                  >
+                    {uploadQueue.some(i => i.status === 'uploading') ? 'Đang xử lý...' : 'Upload Tất cả'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
