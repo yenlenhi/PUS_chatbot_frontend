@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   FileText, Upload, Trash2, Download, RefreshCw, Plus, X, Search,
   File as FileIcon, CheckCircle, AlertCircle, HardDrive, Filter,
-  PieChart, BarChart3, Clock, MoreVertical, Edit2
+  PieChart, BarChart3, Clock, MoreVertical, Edit2, Eye
 } from 'lucide-react';
 import { PieChart as RePieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -184,6 +184,18 @@ export default function AttachmentManager() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const handlePreview = (file: Attachment) => {
+    const fileUrl = `${API_BASE}${file.download_url}`;
+
+    // For Word/Excel/PowerPoint, use Microsoft Office Online Viewer
+    if (file.file_name.match(/\.(doc|docx|xls|xlsx|ppt|pptx)$/i)) {
+      window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(fileUrl)}`, '_blank');
+    } else {
+      // For PDF, Images, or others, try opening directly in browser
+      window.open(fileUrl, '_blank');
+    }
+  };
+
   const filteredAttachments = attachments.filter(att => {
     const matchesSearch = att.file_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       att.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -345,14 +357,18 @@ export default function AttachmentManager() {
 
             <div className="px-5 py-4 bg-gray-50 border-t border-gray-100 flex gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
               <a
-                href={`${API_BASE}${file.download_url}`}
-                target="_blank"
-                rel="noreferrer"
                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors"
               >
                 <Download className="w-4 h-4" />
                 Tải về
               </a>
+              <button
+                onClick={() => handlePreview(file)}
+                className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all"
+                title="Xem online"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
               <button
                 onClick={() => handleDelete(file.id)}
                 className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all"
