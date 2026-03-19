@@ -1,6 +1,6 @@
 import { ChatRequest, ChatResponse, SearchRequest, SearchResponse, HealthResponse, ChatHistoryResponse, ConversationDetail, ChatHistoryStats, ChatHistoryExport, Document, DocumentListResponse, UploadResponse, DeleteDocumentResponse, ToggleActiveResponse } from '@/types/api';
 import { Message } from '@/types';
-import { getAuthHeader } from '@/utils/auth';
+import { getAuthHeader, handleAuthFailure } from '@/utils/auth';
 
 // API Base URL - có thể config từ environment variables
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -15,20 +15,22 @@ const apiCall = async <T>(endpoint: string, options: RequestInit = {}): Promise<
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
 
+    const { headers: extraHeaders, ...restOptions } = options;
+
     const response = await fetch(url, {
       signal: controller.signal,
+      ...restOptions,
       headers: {
         'Content-Type': 'application/json',
-        ...options.headers,
+        ...extraHeaders,
       },
-      ...options,
     });
 
     clearTimeout(timeoutId);
 
     // console.log(`API Response: ${response.status} ${url}`);
 
-    if (!response.ok) {
+      if (!response.ok) {
       let errorMessage = 'Đã xảy ra lỗi không xác định.';
 
       if (response.status === 422) {
@@ -44,7 +46,9 @@ const apiCall = async <T>(endpoint: string, options: RequestInit = {}): Promise<
         }
       }
 
-      throw new Error(errorMessage);
+      const error = new Error(errorMessage) as Error & { status?: number };
+      error.status = response.status;
+      throw error;
     }
 
     return await response.json();
@@ -60,13 +64,21 @@ const apiCall = async <T>(endpoint: string, options: RequestInit = {}): Promise<
 };
 
 const adminApiCall = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
-  return apiCall<T>(endpoint, {
-    ...options,
-    headers: {
-      ...getAuthHeader(),
-      ...options.headers,
-    },
-  });
+  try {
+    return await apiCall<T>(endpoint, {
+      ...options,
+      headers: {
+        ...getAuthHeader(),
+        ...options.headers,
+      },
+    });
+  } catch (error) {
+    const status = (error as Error & { status?: number }).status;
+    if (status === 401 || status === 403) {
+      handleAuthFailure();
+    }
+    throw error;
+  }
 };
 
 // API Functions
@@ -308,6 +320,11 @@ export const documentsAPI = {
         },
         body: formData,
       });
+
+      if (response.status === 401 || response.status === 403) {
+        handleAuthFailure();
+        throw new Error('Authentication required');
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
