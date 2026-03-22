@@ -1,6 +1,14 @@
 const INLINE_TABLE_PATTERN = /([^\n])(\|(?:[^|\n]+\|){2,}.*)/g;
 const TABLE_SEPARATOR_PATTERN = /^:?-{3,}:?$/;
 
+export const hasPotentialMarkdownTable = (content: string): boolean => {
+  if (!content) {
+    return false;
+  }
+
+  return /^\s*\|[^|\n]*\|[^|\n]*\|/m.test(content) && /\|\s*:?-{3,}:?\s*\|/.test(content);
+};
+
 export const extractTableCells = (line: string): string[] | null => {
   const stripped = line.trim();
   if (!stripped.startsWith('|')) {
