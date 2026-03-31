@@ -41,9 +41,6 @@ const Footer = () => {
             <ul className="space-y-3 font-medium">
               {[
                 { label: 'Giới thiệu', href: '/gioi-thieu' },
-                { label: 'Đào tạo', href: '/dao-tao' },
-                { label: 'Tuyển sinh', href: '/tuyen-sinh' },
-                { label: 'Nghiên cứu khoa học', href: '/nghien-cuu' },
                 { label: 'Tin tức & Sự kiện', href: '/tin-tuc' },
               ].map((item, index) => (
                 <li key={index}>
