@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { MapPin, Phone, Mail, Globe, Facebook, Youtube, MessageCircle, Settings, ShieldCheck } from 'lucide-react';
+import { MapPin, Phone, Mail, Globe, Facebook, Youtube, MessageCircle, ShieldCheck } from 'lucide-react';
 import { SCHOOL_INFO } from '@/data/constants';
 
 const Footer = () => {
@@ -120,10 +120,6 @@ const Footer = () => {
             <div className="flex items-center gap-6">
               <Link href="/privacy" className="text-gray-500 hover:text-white text-sm transition-colors">Bảo mật</Link>
               <Link href="/terms" className="text-gray-500 hover:text-white text-sm transition-colors">Điều khoản</Link>
-              <Link href="/admin" className="text-gray-600 hover:text-red-500 text-sm transition-colors flex items-center gap-1 bg-gray-800 px-3 py-1 rounded-full">
-                <Settings className="w-3 h-3" />
-                <span>Quản trị</span>
-              </Link>
             </div>
           </div>
         </div>
