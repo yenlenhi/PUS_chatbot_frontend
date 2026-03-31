@@ -1388,14 +1388,14 @@ const ChatBotPage = () => {
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
             <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 min-w-0 flex-1">
               {/* Back to Home button */}
-              <Link
-                href="/"
+              <a
+                href="https://dhannd.bocongan.gov.vn/tuyensinh"
                 className="group flex items-center gap-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 text-gray-700 rounded-xl transition-all duration-300 text-xs sm:text-sm font-medium flex-shrink-0 shadow-sm hover:shadow-md hover:scale-105"
                 title="Về trang chủ"
               >
                 <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-translate-x-0.5 transition-transform" />
                 <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
-              </Link>
+              </a>
 
               <Image
                 src="/assests/logo-main.png"
