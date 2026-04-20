@@ -1119,6 +1119,14 @@ const ChatBotPage = () => {
     }
   }, []);
 
+  const isDesktopViewport = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return true;
+    }
+
+    return window.innerWidth >= 1024;
+  }, []);
+
   // View sources in sidebar
   const handleViewSources = useCallback((sources: SourceReference[]) => {
     setCurrentSourceReferences(sources);
@@ -1133,6 +1141,7 @@ const ChatBotPage = () => {
     const textToSend = messageToSend || inputMessage;
     if (!textToSend.trim() && uploadedImages.length === 0) return;
 
+    const shouldAutoOpenSources = isDesktopViewport();
     const currentQuery = textToSend; // Store before clearing
     const currentImages = [...uploadedImages]; // Store before clearing
     const userMessageCountAfterSend =
@@ -1219,7 +1228,9 @@ const ChatBotPage = () => {
 
           if (sourceReferences.length > 0) {
             setCurrentSourceReferences(sourceReferences);
-            setSidebarOpen(true);
+            if (shouldAutoOpenSources) {
+              setSidebarOpen(true);
+            }
           }
 
           setMessages(prev => prev.map(msg =>
@@ -1326,7 +1337,9 @@ const ChatBotPage = () => {
 
                 if (streamedSources.length > 0) {
                   setCurrentSourceReferences(streamedSources);
-                  setSidebarOpen(true);
+                  if (shouldAutoOpenSources) {
+                    setSidebarOpen(true);
+                  }
                 }
               } else if (chunk.type === 'answer_chunk') {
                 streamedContent += chunk.content || '';
