@@ -3,15 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import AdminLayout from '@/components/admin/AdminLayout';
 import Toast, { ToastType } from '@/components/ui/Toast';
 import ConfirmModal from '@/components/ui/ConfirmModal';
-import { normalizeMarkdownTables } from '@/lib/markdownTables';
 import { Search, Filter, Download, Eye, Calendar, User, MessageSquare, RefreshCw, Trash2, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Image as ImageIcon, Copy, Check, RotateCw, Maximize2 } from 'lucide-react';
 import { chatHistoryAPI } from '@/services/api';
 import { checkSession } from '@/utils/auth';
@@ -251,103 +245,6 @@ const ImageModal: React.FC<ImageModalProps> = ({
   );
 
   return createPortal(modalContent, document.body);
-};
-
-interface MarkdownMessageContentProps {
-  content: string;
-  isUser?: boolean;
-}
-
-const MarkdownMessageContent: React.FC<MarkdownMessageContentProps> = ({ content, isUser = false }) => {
-  const renderedContent = normalizeMarkdownTables(content || '');
-  const inlineCodeClasses = isUser
-    ? 'bg-white/20 text-white px-1 py-0.5 rounded text-xs'
-    : 'bg-gray-200 text-red-600 px-1 py-0.5 rounded text-xs';
-  const codeBlockClasses = isUser
-    ? 'block bg-slate-950/80 text-slate-100 p-3 rounded-lg text-xs my-2 overflow-x-auto whitespace-pre'
-    : 'block bg-gray-900 text-gray-100 p-3 rounded-lg text-xs my-2 overflow-x-auto whitespace-pre';
-  const blockquoteClasses = isUser
-    ? 'border-l-4 border-white/40 pl-3 italic text-blue-50 my-2'
-    : 'border-l-4 border-blue-400 pl-3 italic text-gray-700 my-2';
-  const tableWrapperClasses = isUser
-    ? 'overflow-x-auto my-3 rounded-lg border border-white/20 bg-white/10'
-    : 'overflow-x-auto my-3 rounded-lg border border-gray-200';
-  const tableClasses = isUser
-    ? 'min-w-full border-collapse text-xs text-white'
-    : 'min-w-full border-collapse text-xs text-gray-800';
-  const tableHeadClasses = isUser
-    ? 'border border-white/20 bg-white/10 px-3 py-2 text-left font-semibold text-white'
-    : 'border border-gray-300 bg-gray-100 px-3 py-2 text-left font-semibold';
-  const tableCellClasses = isUser
-    ? 'border border-white/20 px-3 py-2 align-top text-blue-50'
-    : 'border border-gray-300 px-3 py-2 align-top';
-  const proseClasses = isUser
-    ? 'text-sm xs:text-base leading-relaxed text-white break-words [&_a]:text-white [&_a]:underline [&_a]:underline-offset-2 [&_hr]:border-white/20 [&_strong]:text-white [&_em]:text-blue-50 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1 [&_p]:mb-2 [&_p:last-child]:mb-0'
-    : 'text-sm xs:text-base leading-relaxed text-gray-800 break-words [&_a]:text-blue-600 [&_a]:underline [&_a]:underline-offset-2 [&_hr]:border-gray-200 [&_strong]:text-gray-900 [&_em]:text-gray-700 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1 [&_p]:mb-2 [&_p:last-child]:mb-0';
-
-  if (!renderedContent) {
-    return null;
-  }
-
-  return (
-    <div className={proseClasses}>
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
-        components={{
-          code({ className, children, ...props }) {
-            const match = /language-(\w+)/.exec(className || '');
-            const isInline = !match && children?.toString().indexOf('\n') === -1;
-
-            if (match) {
-              return (
-                <SyntaxHighlighter
-                  style={oneDark as Record<string, React.CSSProperties>}
-                  language={match[1]}
-                  PreTag="div"
-                  className="rounded-lg text-xs my-2"
-                >
-                  {String(children).replace(/\n$/, '')}
-                </SyntaxHighlighter>
-              );
-            }
-
-            if (isInline) {
-              return (
-                <code className={inlineCodeClasses} {...props}>
-                  {children}
-                </code>
-              );
-            }
-
-            return (
-              <code className={`${className || ''} ${codeBlockClasses}`} {...props}>
-                {children}
-              </code>
-            );
-          },
-          table({ children }) {
-            return (
-              <div className={tableWrapperClasses}>
-                <table className={tableClasses}>{children}</table>
-              </div>
-            );
-          },
-          th({ children }) {
-            return <th className={tableHeadClasses}>{children}</th>;
-          },
-          td({ children }) {
-            return <td className={tableCellClasses}>{children}</td>;
-          },
-          blockquote({ children }) {
-            return <blockquote className={blockquoteClasses}>{children}</blockquote>;
-          },
-        }}
-      >
-        {renderedContent}
-      </ReactMarkdown>
-    </div>
-  );
 };
 
 const ChatHistoryPage = () => {
@@ -1048,7 +945,7 @@ const ChatHistoryPage = () => {
                           )})()}
                           
                           {/* User text message */}
-                          <MarkdownMessageContent content={msg.user_message} isUser />
+                          <p className="text-sm xs:text-base break-words leading-relaxed">{msg.user_message}</p>
                           
                           <p className="text-xs text-blue-100 mt-2 opacity-75">{formatDate(msg.timestamp)}</p>
                         </div>
@@ -1076,7 +973,23 @@ const ChatHistoryPage = () => {
                             </div>
                             <p className="text-xs font-medium text-green-600">Trợ lý AI</p>
                           </div>
-                          <MarkdownMessageContent content={msg.assistant_response} />
+                          <div className="text-sm xs:text-base text-gray-800 leading-relaxed prose prose-sm max-w-none markdown-content">
+                            <ReactMarkdown
+                              components={{
+                                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                                ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                                li: ({ children }) => <li className="text-gray-800">{children}</li>,
+                                strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                                em: ({ children }) => <em className="italic text-gray-700">{children}</em>,
+                                code: ({ children }) => <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-gray-800">{children}</code>,
+                                pre: ({ children }) => <pre className="bg-gray-100 p-3 rounded-lg overflow-x-auto mb-2">{children}</pre>,
+                                blockquote: ({ children }) => <blockquote className="border-l-4 border-blue-400 pl-3 italic text-gray-700 mb-2">{children}</blockquote>
+                              }}
+                            >
+                              {msg.assistant_response}
+                            </ReactMarkdown>
+                          </div>
                           <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between mt-3 pt-3 border-t border-gray-100 gap-1 xs:gap-0">
                             <div className="flex items-center gap-1">
                               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
